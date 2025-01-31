@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subir Imagen a Supabase</title>
+    <link rel="stylesheet" href="styles.css">
+
+    <script type="module">
+        import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+        const supabaseUrl = "https://apvxljpujvoolhhayxdc.supabase.co";
+        const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFwdnhsanB1anZvb2xoaGF5eGRjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgyNjE5MjUsImV4cCI6MjA1MzgzNzkyNX0.qOQ-0u7_JBG_IRnKW3FLcZTquiR8dM71pjQssctW6T8";
+        const supabase = createClient(supabaseUrl, supabaseKey);
+
+
+        async function uploadFiles() {
+            const files = document.getElementById("media").files;
+            const resultsContainer = document.getElementById("results");
+            resultsContainer.innerHTML = ""; // Limpiar resultados previos
+            resultsContainer.style.display = "none"; // Ocultar notificación si está vacía
+
+            if (files.length === 0) {
+                alert("Selecciona al menos un archivo.");
+                return;
+            }
+
+            let successMessages = "";
+            let errorMessages = "";
+
+            for (const file of files) {
+                const filePath = `${Date.now()}_${file.name}`;
+                const { data, error } = await supabase.storage
+                    .from('Fotos')
+                    .upload(filePath, file);
+
+                if (error) {
+                    errorMessages += `<p>Error al subir ${file.name}: ${error.message}</p>`;
+                } else {
+                    const url = `${supabaseUrl}/storage/v1/object/public/Fotos/${filePath}`;
+                    successMessages += `<p>✅ Subido con éxito: <a href="${url}" target="_blank">${file.name}</a></p>`;
+                }
+            }
+
+            // Mostrar notificación final
+            if (successMessages || errorMessages) {
+                resultsContainer.style.display = "block";
+                resultsContainer.innerHTML = successMessages + errorMessages;
+                if (errorMessages) {
+                    resultsContainer.classList.add("error"); // Si hay errores, mostrar como error
+                } else {
+                    resultsContainer.classList.remove("error"); // Si no hay errores, es una notificación de éxito
+                }
+
+                // Limpiar lista de archivos después de mostrar la notificación
+                document.getElementById("media").value = '';
+            }
+        }
+
+        // Agregar un event listener para el cambio de archivos en el input
+        document.getElementById("media").addEventListener("change", () => {
+            const files = document.getElementById("media").files;
+            const uploadButton = document.querySelector("button");
+            uploadButton.disabled = files.length === 0; // Deshabilitar si no hay archivos
+        });
+        window.uploadFiles = uploadFiles;
+    </script>
+</head>
+
+<body>
+    <div class="container">
+        <div class="data">
+            <label for="media" class="custom-file-upload">Seleccionar Archivos</label>
+            <input type="file" id="media" accept="image/*, video/*" multiple>
+            <button onclick="uploadFiles()">Subir</button>
+        </div>
+        <div id="results"></div>
+    </div>
+</body>
+
+</html>
