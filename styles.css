@@ -15,13 +15,11 @@
     width: 100%;
     height: 100vh;
     position: relative;
-    /* Necesario para que los elementos hijos con position: absolute se ubiquen respecto a este contenedor */
 }
 
 .data {
     position: absolute;
     top: 58%;
-    /* Ajusta esta proporción para que se posicione según el fondo */
     left: 50%;
     transform: translateX(-50%);
     display: flex;
@@ -59,46 +57,82 @@ button {
 }
 
 button:disabled {
-    background: #a9c8bb;
-    /* Color menos saturado cuando está deshabilitado */
+    background: grey;
     cursor: not-allowed;
-    /* Cambia el cursor a uno de 'no permitido' */
 }
 
-#results {
-    top: 10px;
-    padding: 15px;
-    background: #8EBF95;
-    color: white;
-    border-radius: 8px;
-    width: 100%;
-    text-align: center;
-    font-size: 15px;
-    position: absolute;
+/* Animación de carga */
+.loading {
+    display: none;
+    position: fixed;
+    top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    display: none;
-    opacity: 1;
-    animation: fadeOut 3s forwards;
-    /* Añadimos animación */
+    background: #ffffff90;
+    backdrop-filter: blur(3px);
+    padding: 20px;
+    border-radius: 10px;
 }
 
-.error {
-    background: #f9655a;
+.spinner {
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #8EBF95;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
 }
 
-/* Animación para desvanecer el mensaje */
-@keyframes fadeOut {
+@keyframes spin {
     0% {
-        opacity: 1;
-    }
-
-    80% {
-        opacity: 1;
+        transform: rotate(0deg);
     }
 
     100% {
-        opacity: 0;
-        display: none;
+        transform: rotate(360deg);
     }
+}
+
+/* Mensaje de éxito/error */
+.message {
+    display: none;
+    position: fixed;
+    flex-direction: column;
+    color: black;
+    font-size: 17px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #fffaf0;
+    backdrop-filter: blur(3px);
+    padding: 20px;
+    border-radius: 15px;
+    text-align: center;
+    align-items: center;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    width: 275px;
+    height: 280px;
+}
+
+.message.error {
+    background: #f9655a;
+    color: white;
+}
+
+.message span {
+    margin-top: 25px;
+    font-size: 40px;
+    display: block;
+    margin-bottom: 10px;
+}
+
+.close-btn {
+    align-self: flex-end;
+    aspect-ratio: 1/1;
+    font-size: 15px;
+    background: #F29188;
+    width: 40px;
+    border-radius: 50%;
+    color: white;
+    cursor: pointer;
 }
