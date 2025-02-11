@@ -61,6 +61,31 @@ button:disabled {
     cursor: not-allowed;
 }
 
+/* Estilos para el link/botón de navegación */
+.nav-link {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    /* Asegura que se muestre sobre otros elementos */
+}
+
+.btn-link {
+    display: inline-block;
+    padding: 10px 20px;
+    background: #F29188;
+    color: white;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 16px;
+    transition: background 0.3s;
+}
+
+.btn-link:hover {
+    background: #7da887;
+}
+
+
 /* Animación de carga */
 .loading {
     display: none;
@@ -134,5 +159,86 @@ button:disabled {
     width: 40px;
     border-radius: 50%;
     color: white;
+    cursor: pointer;
+}
+
+/* Estilos para el Banner */
+.banner-container {
+    width: 100%;
+}
+
+.banner-container img {
+    width: 100%;
+    display: block;
+}
+
+/* Contenedor de la Galería */
+.gallery-container {
+    background-color: #8EBF95;
+    padding: 5px;
+    /* Espaciado vertical */
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+/* Galería con efecto masonry en 2 columnas usando multi-column layout */
+.gallery {
+    column-count: 2;
+    /* 2 columnas */
+    column-gap: 10px;
+    /* Espacio entre columnas */
+    padding: 5px;
+    max-width: 500px;
+    /* Ancho máximo de la galería */
+    margin: 0 auto;
+}
+
+/* Estilos para las imágenes de la galería */
+.gallery img {
+    width: 100%;
+    display: block;
+    margin-bottom: 10px;
+    /* Espacio inferior entre imágenes */
+    border-radius: 5px;
+    cursor: pointer;
+    transition: transform 0.3s ease-in-out;
+}
+
+.gallery img:hover {
+    transform: scale(1.05);
+}
+
+/* Modal para ver imagen en grande */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+}
+
+.modal-content {
+    max-width: 90%;
+    max-height: 90%;
+    border-radius: 5px;
+    object-fit: contain;
+    display: block;
+    margin: 0 auto;
+}
+
+.close {
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    color: white;
+    font-size: 40px;
+    font-weight: bold;
     cursor: pointer;
 }

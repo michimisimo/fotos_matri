@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galería</title>
+    <link rel="stylesheet" href="styles.css">
+    <script type="module">
+
+        import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+        import heic2any from "https://cdn.jsdelivr.net/npm/heic2any/+esm";
+
+        const supabaseUrl = "https://apvxljpujvoolhhayxdc.supabase.co";
+        const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFwdnhsanB1anZvb2xoaGF5eGRjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgyNjE5MjUsImV4cCI6MjA1MzgzNzkyNX0.qOQ-0u7_JBG_IRnKW3FLcZTquiR8dM71pjQssctW6T8";
+        const supabase = createClient(supabaseUrl, supabaseKey);
+        const bucketName = "Fotos";
+        const pageSize = 20;
+        let page = 0;
+        let hasMoreImages = true; // Bandera para saber si quedan imágenes por cargar
+        const loadedImageIds = new Set();  // Para almacenar los IDs de imágenes ya cargadas
+
+        async function loadImages() {
+            if (!hasMoreImages) return; // Si no hay más imágenes, salimos
+
+            try {
+                // Evitar carga múltiple simultánea
+                if (window.isLoading) return;
+                window.isLoading = true;
+
+                const { data, error } = await supabase.storage.from(bucketName).list("", {
+                    limit: pageSize,
+                    offset: page * pageSize,
+                });
+
+                // Imprime la data para ver cómo lucen los elementos (incluyendo vacíos)
+                console.log("Data recibida:", data);
+
+                if (error) {
+                    console.error("Error cargando imágenes:", error);
+                    return;
+                }
+
+                // Si no se reciben datos o el arreglo está vacío, no hay más imágenes
+                if (!data || data.length === 0) {
+                    hasMoreImages = false;
+                    return;
+                }
+
+                const gallery = document.getElementById("gallery");
+
+                for (const image of data) {
+                    // Validamos que el objeto tenga contenido y una propiedad 'name' válida.
+                    // También descartamos el placeholder (por ejemplo, '.emptyFolderPlaceholder').
+                    if (
+                        !image ||
+                        !image.name ||
+                        image.name.trim() === "" ||
+                        image.name === ".emptyFolderPlaceholder"
+                    ) {
+                        console.log("Elemento vacío encontrado en data:", image);
+                        continue; // Omitir este elemento
+                    }
+
+                    // Evitar duplicados: si ya se cargó esta imagen, la omitimos
+                    if (loadedImageIds.has(image.id)) {
+                        console.log("Imagen duplicada detectada, omitiendo:", image);
+                        continue;
+                    }
+                    // Agregamos el ID a nuestro registro de imágenes cargadas
+                    loadedImageIds.add(image.id);
+
+                    let imageUrl = `${supabaseUrl}/storage/v1/object/public/${bucketName}/${image.name}`;
+
+                    // Si la imagen es HEIC, la convertimos antes de mostrarla
+                    if (image.name.toLowerCase().endsWith(".heic")) {
+                        try {
+                            const response = await fetch(imageUrl);
+                            if (!response.ok) throw new Error("No se pudo cargar la imagen HEIC");
+
+                            const blob = await response.blob();
+                            const convertedBlob = await heic2any({ blob, toType: "image/jpeg" });
+                            imageUrl = URL.createObjectURL(convertedBlob);
+                        } catch (heicError) {
+                            console.error("Error al convertir HEIC:", heicError);
+                            continue;
+                        }
+                    }
+
+                    const imgElement = document.createElement("img");
+                    imgElement.src = imageUrl;
+                    imgElement.alt = `Imagen ${image.name}`;
+                    imgElement.dataset.full = imageUrl;
+                    imgElement.loading = "lazy"; // Optimiza la carga
+                    imgElement.addEventListener("click", openModal);
+                    gallery.appendChild(imgElement);
+                }
+
+                // Si se han recibido menos imágenes que el límite, es la última carga
+                if (data.length < pageSize) {
+                    hasMoreImages = false;
+                }
+
+                page++;
+            } catch (err) {
+                console.error("Error general al cargar imágenes:", err);
+            } finally {
+                window.isLoading = false; // Resetear estado de carga
+            }
+        }
+
+        function openModal(event) {
+            const modal = document.getElementById("imageModal");
+            const fullImage = document.getElementById("fullImage");
+            fullImage.src = event.target.dataset.full;
+            modal.style.display = "flex";
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            document.querySelector(".close").addEventListener("click", () => {
+                document.getElementById("imageModal").style.display = "none";
+            });
+
+            window.addEventListener("scroll", () => {
+                // Se dispara la carga solo si hay más imágenes y se ha alcanzado el final de la página
+                if (hasMoreImages && window.innerHeight + window.scrollY >= document.body.offsetHeight - 200) {
+                    loadImages();
+                }
+            });
+
+            loadImages();
+        });
+
+
+    </script>
+
+</head>
+
+<body>
+    <!-- Contenedor del Banner -->
+    <div class="banner-container">
+        <img src="./banner_galeria.png" alt="Banner de la Galería">
+    </div>
+
+    <!-- Contenedor de la Galería -->
+    <div class="gallery-container">
+        <div class="gallery" id="gallery"></div>
+    </div>
+
+    <!-- Botón fijo para volver -->
+    <div class="nav-link">
+        <!-- Puedes cambiar el href por la URL que prefieras -->
+        <a href="index.html" class="btn-link">Volver</a>
+    </div>
+
+    <!-- Modal para imagen ampliada -->
+    <div id="imageModal" class="modal">
+        <span class="close">&times;</span>
+        <img class="modal-content" id="fullImage">
+    </div>
+</body>
+
+
+</html>
